@@ -14,6 +14,9 @@ import "@zircon-labs/primitives/styles.css";
 <Divider label="Details" />
 ```
 
+Divider labels are descriptive content. Put interactive elements such as links
+and buttons outside the separator.
+
 Import `styles.css` once at the application boundary. The stylesheet is
 self-contained and does not require another Zircon package or theme.
 

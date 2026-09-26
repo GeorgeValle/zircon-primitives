@@ -26,6 +26,15 @@ describe("Divider", () => {
     const markup = renderToStaticMarkup(createElement(Divider, { label: "Section" }));
     expect(markup).toContain('role="separator"');
     expect(markup).toContain("Section");
+    const labelId = markup.match(/aria-labelledby="([^"]+)"/)?.[1];
+    expect(labelId).toBeTruthy();
+    expect(markup).toContain(`id="${labelId}"`);
+
+    const named = renderToStaticMarkup(
+      createElement(Divider, { label: "Section", "aria-label": "Custom name" }),
+    );
+    expect(named).toContain('aria-label="Custom name"');
+    expect(named).not.toContain("aria-labelledby=");
   });
 });
 

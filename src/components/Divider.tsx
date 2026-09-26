@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Jorge Guillermo Valle
 // SPDX-License-Identifier: Apache-2.0
 
-import type { HTMLAttributes, ReactNode } from "react";
+import { useId, type HTMLAttributes, type ReactNode } from "react";
 
 import styles from "./Divider.module.css";
 import { cx } from "../internal/cx.js";
@@ -53,6 +53,7 @@ export function Divider({
   variant = "solid",
   ...props
 }: DividerProps) {
+  const labelId = useId();
   const rootClassName = cx(
     styles.root,
     orientations[orientation],
@@ -67,11 +68,16 @@ export function Divider({
       <div
         {...props}
         aria-hidden={decorative ? true : undefined}
+        aria-labelledby={
+          decorative || props["aria-label"] || props["aria-labelledby"]
+            ? props["aria-labelledby"]
+            : labelId
+        }
         className={cx(rootClassName, styles.hasLabel)}
         role={decorative ? undefined : "separator"}
       >
         <span aria-hidden="true" className={styles.line} />
-        <span className={styles.label}>{label}</span>
+        <span id={labelId} className={styles.label}>{label}</span>
         <span aria-hidden="true" className={styles.line} />
       </div>
     );

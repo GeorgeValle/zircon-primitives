@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const corepack = process.platform === "win32" ? "corepack.cmd" : "corepack";
 const expectedPackageFiles = [
   "dist/components/Divider.d.ts",
   "dist/components/Skeleton.d.ts",
@@ -55,7 +55,7 @@ function run(command, args, options = {}) {
 
   if (result.status !== 0) {
     throw new Error(
-      `${command} ${args.join(" ")} failed with exit code ${result.status}\n${result.stderr}`,
+      `${command} ${args.join(" ")} failed with exit code ${result.status}\n${result.stdout}\n${result.stderr}`,
     );
   }
 
@@ -176,7 +176,7 @@ try {
   assert.doesNotMatch(stylesheet, /--iu-|@zircon-labs\/iu/);
 
   const dryRun = JSON.parse(
-    run(pnpm, ["pack", "--dry-run", "--json"], { env: isolatedEnv }),
+    run(corepack, ["pnpm", "pack", "--dry-run", "--json"], { env: isolatedEnv }),
   );
   assert.equal(Array.isArray(dryRun), false);
   assert.equal(dryRun.name, manifest.name);
@@ -188,8 +188,8 @@ try {
   );
 
   const packOutput = run(
-    pnpm,
-    ["pack", "--json", "--pack-destination", temporaryRoot],
+    corepack,
+    ["pnpm", "pack", "--json", "--pack-destination", temporaryRoot],
     { env: isolatedEnv },
   );
   const packed = JSON.parse(packOutput);
@@ -208,6 +208,7 @@ try {
     version: "0.0.0",
     private: true,
     type: "module",
+    packageManager: manifest.packageManager,
     dependencies: {
       "@zircon-labs/primitives": `file:${tarball}`,
       react: "19.2.8",
@@ -220,7 +221,12 @@ try {
     `${JSON.stringify(consumerManifest, null, 2)}\n`,
     "utf8",
   );
-  run(pnpm, ["install", "--offline", "--ignore-scripts"], {
+  run(corepack, ["pnpm", "install", "--ignore-scripts", "--registry=https://registry.npmjs.org/"], {
+    cwd: consumer,
+    env: isolatedEnv,
+  });
+  rmSync(join(consumer, "node_modules"), { recursive: true, force: true });
+  run(corepack, ["pnpm", "install", "--offline", "--frozen-lockfile", "--ignore-scripts"], {
     cwd: consumer,
     env: isolatedEnv,
   });

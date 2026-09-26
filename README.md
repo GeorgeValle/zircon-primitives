@@ -17,6 +17,11 @@ import "@zircon-labs/primitives/styles.css";
 Import `styles.css` once at the application boundary. The stylesheet is
 self-contained and does not require another Zircon package or theme.
 
+For `Skeleton` with `variant="circle"`, either `width` or `height` sets its
+diameter. When both are provided, `width` takes precedence. With no `width`,
+`fullWidth` takes precedence over `height` and makes the circle as wide as its
+container.
+
 ## CSS customization
 
 Divider supports `--zircon-divider-color-subtle`,

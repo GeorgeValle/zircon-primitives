@@ -30,14 +30,11 @@
 
 .variantCircle {
   aspect-ratio: 1 / 1;
-  block-size: var(
-    --_zircon-skeleton-block-size,
-    var(--zircon-skeleton-circle-size, 2.5rem)
-  );
+  block-size: auto;
   border-radius: var(--_zircon-skeleton-radius-override, 999px);
   inline-size: var(
     --_zircon-skeleton-inline-size,
-    var(--zircon-skeleton-circle-size, 2.5rem)
+    var(--_zircon-skeleton-block-size, var(--zircon-skeleton-circle-size, 2.5rem))
   );
 }
 

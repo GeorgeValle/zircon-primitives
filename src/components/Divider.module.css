@@ -1,0 +1,75 @@
+/* SPDX-FileCopyrightText: 2026 Jorge Guillermo Valle */
+/* SPDX-License-Identifier: Apache-2.0 */
+
+.root {
+  --_zircon-divider-color: var(--zircon-divider-color-subtle, rgb(15 23 42 / 0.14));
+  --_zircon-divider-spacing: var(--zircon-divider-spacing-md, 1rem);
+  --_zircon-divider-line-style: solid;
+  border: 0;
+  box-sizing: border-box;
+  color: inherit;
+  font: inherit;
+  min-inline-size: 0;
+}
+
+.orientationHorizontal {
+  block-size: 0;
+  border-block-start: 1px var(--_zircon-divider-line-style) var(--_zircon-divider-color);
+  inline-size: 100%;
+  margin-block: var(--_zircon-divider-spacing);
+  margin-inline: 0;
+}
+
+.orientationVertical {
+  align-self: stretch;
+  border-inline-start: 1px var(--_zircon-divider-line-style) var(--_zircon-divider-color);
+  flex: 0 0 auto;
+  inline-size: 0;
+  margin-block: 0;
+  margin-inline: var(--_zircon-divider-spacing);
+  min-block-size: var(--zircon-divider-vertical-min-height, 1.5rem);
+}
+
+.variantSolid { --_zircon-divider-line-style: solid; }
+.variantDashed { --_zircon-divider-line-style: dashed; }
+.variantDotted { --_zircon-divider-line-style: dotted; }
+
+.toneSubtle {
+  --_zircon-divider-color: var(--zircon-divider-color-subtle, rgb(15 23 42 / 0.14));
+}
+
+.toneNeutral {
+  --_zircon-divider-color: var(--zircon-divider-color-neutral, rgb(15 23 42 / 0.24));
+}
+
+.spacingNone { --_zircon-divider-spacing: 0; }
+.spacingSm { --_zircon-divider-spacing: var(--zircon-divider-spacing-sm, 0.5rem); }
+.spacingMd { --_zircon-divider-spacing: var(--zircon-divider-spacing-md, 1rem); }
+.spacingLg { --_zircon-divider-spacing: var(--zircon-divider-spacing-lg, 1.5rem); }
+
+.hasLabel {
+  align-items: center;
+  block-size: auto;
+  border-block-start: 0;
+  display: flex;
+  gap: var(--zircon-divider-label-gap, 0.75rem);
+  min-block-size: 1px;
+}
+
+.line {
+  border-block-start: 1px var(--_zircon-divider-line-style) var(--_zircon-divider-color);
+  flex: 1 1 0;
+  min-inline-size: var(--zircon-divider-label-line-min-width, 1rem);
+}
+
+.label {
+  color: var(--zircon-divider-label-color, rgb(71 85 105));
+  flex: 0 1 auto;
+  font: inherit;
+  font-size: var(--zircon-divider-label-font-size, 0.8125rem);
+  line-height: 1.25;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  text-align: center;
+}

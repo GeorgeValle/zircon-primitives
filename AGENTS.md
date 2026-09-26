@@ -20,6 +20,7 @@
 
 - Do not publish without explicit authorization.
 - Do not add publish, release, or version automation prematurely.
+- Keep React as a peer dependency; add React DOM as a peer only when runtime code requires it.
 - Do not invent exports, components, or other public APIs.
 - Review licensing and provenance before adding code or assets.
 - Do not attribute third-party work to this repository's copyright holder.

@@ -18,8 +18,11 @@ import assert from "node:assert/strict";
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const expectedPackageFiles = [
+  "dist/components/Divider.d.ts",
+  "dist/components/Skeleton.d.ts",
   "dist/index.d.ts",
   "dist/index.js",
+  "dist/styles.css",
   "LICENSE",
   "NOTICE",
   "package.json",
@@ -28,7 +31,11 @@ const expectedPackageFiles = [
 const expectedArchiveFiles = expectedPackageFiles.map((path) => `package/${path}`);
 const expectedDevDependencies = {
   "@types/node": "24.13.3",
+  "@types/react": "19.2.18",
+  "@types/react-dom": "19.2.7",
   "@typescript/native": "npm:typescript@7.0.2",
+  react: "19.2.8",
+  "react-dom": "19.2.8",
   typescript: "npm:@typescript/typescript6@6.0.2",
   vite: "8.2.2",
   "vite-plugin-dts": "5.1.0",
@@ -88,15 +95,18 @@ function assertManifest(manifest) {
       types: "./dist/index.d.ts",
       import: "./dist/index.js",
     },
+    "./styles.css": "./dist/styles.css",
   });
-  assert.equal(manifest.sideEffects, false);
+  assert.deepEqual(manifest.sideEffects, ["**/*.css"]);
   assert.equal(manifest.packageManager, "pnpm@10.33.0");
   assert.equal("engines" in manifest, false);
   assert.equal("publishConfig" in manifest, false);
 
-  for (const field of ["dependencies", "peerDependencies", "optionalDependencies"]) {
+  for (const field of ["dependencies", "optionalDependencies"]) {
     assert.equal(field in manifest, false, `${field} must be absent`);
   }
+
+  assert.deepEqual(manifest.peerDependencies, { react: "^19.0.0" });
 
   assert.deepEqual(manifest.devDependencies, expectedDevDependencies);
 
@@ -147,12 +157,23 @@ try {
     "Zircon Primitives\nCopyright 2026 Jorge Guillermo Valle\n",
   );
 
-  assert.deepEqual(readdirSync(join(root, "dist")).sort(), ["index.d.ts", "index.js"]);
-  assert.equal(readFileSync(join(root, "dist", "index.js"), "utf8").trim(), "");
-  assert.equal(
-    readFileSync(join(root, "dist", "index.d.ts"), "utf8").trim(),
-    "export {};",
-  );
+  const bundle = readFileSync(join(root, "dist", "index.js"), "utf8");
+  assert.match(bundle, /from ["']react\/jsx-runtime["']/);
+  assert.doesNotMatch(bundle, /@zircon-labs\/iu|react\.production|minified React error/i);
+  assert.match(bundle, /export \{ .*Divider.*Skeleton|export \{ .*Skeleton.*Divider/);
+
+  const stylesheet = readFileSync(join(root, "dist", "styles.css"), "utf8");
+  for (const token of [
+    "--zircon-divider-color-subtle",
+    "--zircon-divider-color-neutral",
+    "--zircon-divider-spacing-md",
+    "--zircon-skeleton-background",
+    "--zircon-skeleton-highlight",
+    "--zircon-skeleton-radius",
+  ]) {
+    assert.ok(stylesheet.includes(token), `Missing public CSS token: ${token}`);
+  }
+  assert.doesNotMatch(stylesheet, /--iu-|@zircon-labs\/iu/);
 
   const dryRun = JSON.parse(
     run(pnpm, ["pack", "--dry-run", "--json"], { env: isolatedEnv }),
@@ -189,6 +210,8 @@ try {
     type: "module",
     dependencies: {
       "@zircon-labs/primitives": `file:${tarball}`,
+      react: "19.2.8",
+      "react-dom": "19.2.8",
     },
   };
   mkdirSync(consumer);
@@ -201,15 +224,25 @@ try {
     cwd: consumer,
     env: isolatedEnv,
   });
-  run(
-    process.execPath,
-    [
-      "--input-type=module",
-      "--eval",
-      'const primitives = await import("@zircon-labs/primitives"); if (Object.keys(primitives).length !== 0) process.exit(1);',
-    ],
-    { cwd: consumer, env: isolatedEnv },
-  );
+  const consumerCheck = `
+    import { readFileSync } from "node:fs";
+    import { fileURLToPath } from "node:url";
+    import { createElement } from "react";
+    import { renderToStaticMarkup } from "react-dom/server";
+    import { Divider, Skeleton } from "@zircon-labs/primitives";
+
+    const divider = renderToStaticMarkup(createElement(Divider, { label: "Section" }));
+    const skeleton = renderToStaticMarkup(createElement(Skeleton, { animated: false }));
+    if (!divider.includes("Section") || !skeleton.includes('aria-hidden="true"')) process.exit(1);
+
+    const stylesUrl = import.meta.resolve("@zircon-labs/primitives/styles.css");
+    const styles = readFileSync(fileURLToPath(stylesUrl), "utf8");
+    if (!styles.includes("--zircon-divider-color-subtle")) process.exit(1);
+  `;
+  run(process.execPath, ["--input-type=module", "--eval", consumerCheck], {
+    cwd: consumer,
+    env: isolatedEnv,
+  });
 } catch (error) {
   verificationError = error;
 } finally {

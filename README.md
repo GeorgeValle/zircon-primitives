@@ -1,7 +1,47 @@
 # Zircon Primitives
 
-`@zircon-labs/primitives` is the foundation for public, reusable React UI
-primitives. It is not published to npm and does not export any primitives yet.
+`@zircon-labs/primitives` provides small, reusable React UI primitives. It is
+not published to npm yet.
+
+The current package exports `Divider` and `Skeleton`. React 19 is required as a
+peer dependency.
+
+```tsx
+import { Divider, Skeleton } from "@zircon-labs/primitives";
+import "@zircon-labs/primitives/styles.css";
+
+<Skeleton variant="text" width="70%" />
+<Divider label="Details" />
+```
+
+Divider labels are descriptive content. Put interactive elements such as links
+and buttons outside the separator.
+
+Import `styles.css` once at the application boundary. The stylesheet is
+self-contained and does not require another Zircon package or theme.
+
+For `Skeleton` with `variant="circle"`, either `width` or `height` sets its
+diameter. When both are provided, `width` takes precedence. With no `width`,
+`fullWidth` takes precedence over `height` and makes the circle as wide as its
+container.
+
+## CSS customization
+
+Divider supports `--zircon-divider-color-subtle`,
+`--zircon-divider-color-neutral`, `--zircon-divider-spacing-sm`,
+`--zircon-divider-spacing-md`, `--zircon-divider-spacing-lg`,
+`--zircon-divider-label-color`, `--zircon-divider-label-gap`, and
+`--zircon-divider-label-font-size`.
+
+Skeleton supports `--zircon-skeleton-background`,
+`--zircon-skeleton-highlight`, `--zircon-skeleton-radius`,
+`--zircon-skeleton-text-radius`, `--zircon-skeleton-text-height`,
+`--zircon-skeleton-block-height`, `--zircon-skeleton-circle-size`,
+`--zircon-skeleton-animation-duration`, and
+`--zircon-skeleton-gradient-size`.
+
+Set these variables on a parent or an individual component. Every variable has
+a built-in fallback, so no additional token stylesheet is required.
 
 ## Development
 

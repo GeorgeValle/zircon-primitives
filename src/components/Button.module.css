@@ -1,0 +1,103 @@
+/* SPDX-FileCopyrightText: 2026 Jorge Guillermo Valle */
+/* SPDX-License-Identifier: Apache-2.0 */
+
+.root {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--zircon-button-radius, 0.375rem);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 600;
+  gap: var(--zircon-button-gap, 0.5rem);
+  justify-content: center;
+  line-height: 1.2;
+  text-decoration: none;
+  transition:
+    background-color var(--zircon-button-transition, 120ms ease),
+    border-color var(--zircon-button-transition, 120ms ease),
+    color var(--zircon-button-transition, 120ms ease),
+    opacity var(--zircon-button-transition, 120ms ease),
+    box-shadow var(--zircon-button-transition, 120ms ease);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.root:focus-visible {
+  box-shadow: 0 0 0 3px var(--zircon-button-focus-ring, rgb(37 99 235 / 0.28));
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .root:focus-visible {
+    box-shadow: none;
+    outline: 2px solid Highlight;
+  }
+}
+
+.root:disabled {
+  cursor: not-allowed;
+  opacity: var(--zircon-button-disabled-opacity, 0.55);
+}
+
+.sizeXs {
+  font-size: 0.75rem;
+  min-block-size: 1.75rem;
+  padding-inline: var(--zircon-button-padding-xs, 0.5rem);
+}
+
+.sizeSm {
+  font-size: 0.875rem;
+  min-block-size: 2rem;
+  padding-inline: var(--zircon-button-padding-sm, 0.75rem);
+}
+
+.sizeMd {
+  font-size: 0.9375rem;
+  min-block-size: 2.5rem;
+  padding-inline: var(--zircon-button-padding-md, 1rem);
+}
+
+.sizeLg {
+  font-size: 1rem;
+  min-block-size: 3rem;
+  padding-inline: var(--zircon-button-padding-lg, 1.25rem);
+}
+
+.variantPrimary {
+  background: var(--zircon-button-primary-background, #2563eb);
+  color: var(--zircon-button-primary-color, #fff);
+}
+
+.variantPrimary:not(:disabled):hover {
+  background: var(--zircon-button-primary-background-hover, #1d4ed8);
+}
+
+.variantSecondary {
+  background: var(--zircon-button-secondary-background, #f1f5f9);
+  border-color: var(--zircon-button-secondary-border, #cbd5e1);
+  color: var(--zircon-button-secondary-color, #0f172a);
+}
+
+.variantSecondary:not(:disabled):hover {
+  background: var(--zircon-button-secondary-background-hover, #e2e8f0);
+}
+
+.variantGhost {
+  background: transparent;
+  color: var(--zircon-button-ghost-color, #0f172a);
+}
+
+.variantGhost:not(:disabled):hover {
+  background: var(--zircon-button-ghost-background-hover, #f1f5f9);
+}
+
+.variantDanger {
+  background: var(--zircon-button-danger-background, #dc2626);
+  color: var(--zircon-button-danger-color, #fff);
+}
+
+.variantDanger:not(:disabled):hover {
+  background: var(--zircon-button-danger-background-hover, #b91c1c);
+}

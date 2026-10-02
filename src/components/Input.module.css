@@ -1,0 +1,78 @@
+/* SPDX-FileCopyrightText: 2026 Jorge Guillermo Valle */
+/* SPDX-License-Identifier: Apache-2.0 */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zircon-input-gap, 0.5rem);
+  min-inline-size: 0;
+}
+
+.label {
+  color: var(--zircon-input-label-color, #0f172a);
+  font: inherit;
+  font-size: var(--zircon-input-label-font-size, 0.875rem);
+  font-weight: 600;
+}
+
+.control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"]) {
+  appearance: none;
+}
+
+.control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"]) {
+  background: var(--zircon-input-background, #fff);
+  border: 1px solid var(--zircon-input-border, #cbd5e1);
+  border-radius: var(--zircon-input-radius, 0.375rem);
+  box-sizing: border-box;
+  color: var(--zircon-input-color, #0f172a);
+  font: inherit;
+  inline-size: 100%;
+  min-block-size: var(--zircon-input-min-block-size, 2.5rem);
+  padding: var(--zircon-input-padding, 0.5rem 0.75rem);
+  transition:
+    border-color var(--zircon-input-transition, 120ms ease),
+    box-shadow var(--zircon-input-transition, 120ms ease),
+    opacity var(--zircon-input-transition, 120ms ease);
+}
+
+.control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"])::placeholder {
+  color: var(--zircon-input-placeholder-color, #64748b);
+}
+
+.control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"]):focus-visible {
+  border-color: var(--zircon-input-focus-border, #2563eb);
+  box-shadow: 0 0 0 3px var(--zircon-input-focus-ring, rgb(37 99 235 / 0.18));
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"]):focus-visible {
+    box-shadow: none;
+    outline: 2px solid Highlight;
+  }
+}
+
+.control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"]):disabled {
+  background: var(--zircon-input-disabled-background, #f1f5f9);
+  cursor: not-allowed;
+  opacity: var(--zircon-input-disabled-opacity, 0.7);
+}
+
+.control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"])[aria-invalid="true"] {
+  border-color: var(--zircon-input-error-border, #dc2626);
+}
+
+.hint,
+.error {
+  font-size: var(--zircon-input-message-font-size, 0.8125rem);
+}
+
+.hint {
+  color: var(--zircon-input-hint-color, #475569);
+}
+
+.error {
+  color: var(--zircon-input-error-color, #b91c1c);
+  font-weight: 600;
+}

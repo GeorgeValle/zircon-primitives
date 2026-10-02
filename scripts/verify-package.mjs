@@ -183,7 +183,7 @@ try {
     assert.ok(stylesheet.includes(token), `Missing public CSS token: ${token}`);
   }
   assert.doesNotMatch(stylesheet, /--iu-|@zircon-labs\/iu/);
-  assert.match(stylesheet, /@media\\s*\\(forced-colors:\\s*active\\)/);
+  assert.match(stylesheet, /@media\s*\(forced-colors:\s*active\)/);
   assert.equal(
     (stylesheet.match(/outline:2px solid Highlight/g) ?? []).length,
     2,

@@ -18,7 +18,9 @@ import assert from "node:assert/strict";
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const corepack = process.platform === "win32" ? "corepack.cmd" : "corepack";
 const expectedPackageFiles = [
+  "dist/components/Button.d.ts",
   "dist/components/Divider.d.ts",
+  "dist/components/Input.d.ts",
   "dist/components/Skeleton.d.ts",
   "dist/index.d.ts",
   "dist/index.js",
@@ -160,13 +162,20 @@ try {
   const bundle = readFileSync(join(root, "dist", "index.js"), "utf8");
   assert.match(bundle, /from ["']react\/jsx-runtime["']/);
   assert.doesNotMatch(bundle, /@zircon-labs\/iu|react\.production|minified React error/i);
-  assert.match(bundle, /export \{ .*Divider.*Skeleton|export \{ .*Skeleton.*Divider/);
+  const exportedNames = bundle.match(/export \{([^}]+)\}/)?.[1] ?? "";
+  for (const name of ["Button", "Divider", "Input", "Skeleton"]) {
+    assert.match(exportedNames, new RegExp(`\\b${name}\\b`), `Missing public export: ${name}`);
+  }
 
   const stylesheet = readFileSync(join(root, "dist", "styles.css"), "utf8");
   for (const token of [
     "--zircon-divider-color-subtle",
     "--zircon-divider-color-neutral",
     "--zircon-divider-spacing-md",
+    "--zircon-button-primary-background",
+    "--zircon-button-danger-background",
+    "--zircon-input-background",
+    "--zircon-input-border",
     "--zircon-skeleton-background",
     "--zircon-skeleton-highlight",
     "--zircon-skeleton-radius",
@@ -174,6 +183,38 @@ try {
     assert.ok(stylesheet.includes(token), `Missing public CSS token: ${token}`);
   }
   assert.doesNotMatch(stylesheet, /--iu-|@zircon-labs\/iu/);
+  const textInputTypeSelector =
+    ":is(:not([type]),[type=text],[type=email],[type=password],[type=search],[type=tel],[type=url],[type=number])";
+  assert.ok(
+    stylesheet.includes(textInputTypeSelector),
+    "Input field styles must use an explicit text-type inclusion selector",
+  );
+  const appearanceRule = stylesheet.match(/[^{}]*\{[^{}]*appearance:none[^{}]*\}/)?.[0] ?? "";
+  assert.ok(appearanceRule.includes(":is(:not([type]),[type=text],[type=email],[type=password],[type=search],[type=tel],[type=url])"));
+  assert.doesNotMatch(appearanceRule, /\[type=number\]/);
+  for (const type of [
+    "checkbox",
+    "radio",
+    "range",
+    "file",
+    "color",
+    "date",
+    "datetime-local",
+    "month",
+    "time",
+    "week",
+    "hidden",
+    "button",
+    "submit",
+    "reset",
+    "image",
+  ]) {
+    assert.doesNotMatch(
+      stylesheet,
+      new RegExp(`\\[type=${type}\\]`),
+      `Text-field styles must not target input type ${type}`,
+    );
+  }
 
   const dryRun = JSON.parse(
     run(corepack, ["pnpm", "pack", "--dry-run", "--json"], { env: isolatedEnv }),
@@ -235,11 +276,15 @@ try {
     import { fileURLToPath } from "node:url";
     import { createElement } from "react";
     import { renderToStaticMarkup } from "react-dom/server";
-    import { Divider, Skeleton } from "@zircon-labs/primitives";
+    import { Button, Divider, Input, Skeleton } from "@zircon-labs/primitives";
 
+    const button = renderToStaticMarkup(createElement(Button, { variant: "danger" }, "Remove"));
     const divider = renderToStaticMarkup(createElement(Divider, { label: "Section" }));
+    const input = renderToStaticMarkup(createElement(Input, { hint: "At least one", label: "Quantity", type: "number" }));
     const skeleton = renderToStaticMarkup(createElement(Skeleton, { animated: false }));
-    if (!divider.includes("Section") || !skeleton.includes('aria-hidden="true"')) process.exit(1);
+    if (!button.includes('type="button"') || !button.includes("Remove")) process.exit(1);
+    if (!divider.includes("Section") || !input.includes('type="number"')) process.exit(1);
+    if (!input.includes('aria-describedby=') || !skeleton.includes('aria-hidden="true"')) process.exit(1);
 
     const stylesUrl = import.meta.resolve("@zircon-labs/primitives/styles.css");
     const styles = readFileSync(fileURLToPath(stylesUrl), "utf8");

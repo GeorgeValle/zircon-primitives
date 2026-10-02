@@ -185,7 +185,7 @@ try {
   assert.doesNotMatch(stylesheet, /--iu-|@zircon-labs\/iu/);
   assert.match(stylesheet, /@media\s*\(forced-colors:\s*active\)/);
   assert.equal(
-    (stylesheet.match(/outline:2px solid Highlight/g) ?? []).length,
+    (stylesheet.match(/outline:2px solid Highlight/gi) ?? []).length,
     2,
     "Button and Input must retain visible focus outlines in forced-colors mode",
   );

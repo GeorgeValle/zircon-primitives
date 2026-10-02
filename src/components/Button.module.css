@@ -25,7 +25,15 @@
 
 .root:focus-visible {
   box-shadow: 0 0 0 3px var(--zircon-button-focus-ring, rgb(37 99 235 / 0.28));
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .root:focus-visible {
+    box-shadow: none;
+    outline: 2px solid Highlight;
+  }
 }
 
 .root:disabled {

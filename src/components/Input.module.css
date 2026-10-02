@@ -42,7 +42,15 @@
 .control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"]):focus-visible {
   border-color: var(--zircon-input-focus-border, #2563eb);
   box-shadow: 0 0 0 3px var(--zircon-input-focus-ring, rgb(37 99 235 / 0.18));
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"]):focus-visible {
+    box-shadow: none;
+    outline: 2px solid Highlight;
+  }
 }
 
 .control:is(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="tel"], [type="url"], [type="number"]):disabled {

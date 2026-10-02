@@ -183,6 +183,12 @@ try {
     assert.ok(stylesheet.includes(token), `Missing public CSS token: ${token}`);
   }
   assert.doesNotMatch(stylesheet, /--iu-|@zircon-labs\/iu/);
+  assert.match(stylesheet, /@media\\s*\\(forced-colors:\\s*active\\)/);
+  assert.equal(
+    (stylesheet.match(/outline:2px solid Highlight/g) ?? []).length,
+    2,
+    "Button and Input must retain visible focus outlines in forced-colors mode",
+  );
   const textInputTypeSelector =
     ":is(:not([type]),[type=text],[type=email],[type=password],[type=search],[type=tel],[type=url],[type=number])";
   assert.ok(

@@ -1,10 +1,15 @@
 # Zircon Primitives
 
-`@zircon-labs/primitives` provides small, reusable React UI primitives. It is
-not published to npm yet.
+`@zircon-labs/primitives` provides small, reusable React UI primitives. Version
+`0.1.0-beta.1` is prepared for a first public prerelease but has not been
+published to npm yet.
 
 The current package exports `Button`, `Divider`, `Input`, and `Skeleton`. React
 19 is required as a peer dependency.
+
+Once the prerelease is published separately, install it with
+`pnpm add @zircon-labs/primitives@0.1.0-beta.1` and import the components and
+stylesheet:
 
 ```tsx
 import { Button, Divider, Input, Skeleton } from "@zircon-labs/primitives";
@@ -98,9 +103,9 @@ pnpm check
 Individual checks are available through `pnpm typecheck`, `pnpm build`,
 `pnpm test`, and `pnpm verify:package`.
 
-The package is marked `private` to guard against accidental publication. This
-does not affect the public visibility of this repository. Publication requires
-separate, explicit authorization and is not part of this foundation.
+The package manifest is prepared for public distribution; preparing or merging
+these changes does not publish it. Publication requires separate, explicit
+authorization.
 
 ## License
 

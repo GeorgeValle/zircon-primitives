@@ -87,6 +87,44 @@ describe("Drawer native lifecycle", () => {
     expect(container.querySelector("footer")).toBeNull();
   });
 
+  it("renders numeric zero as description text and associates its ARIA id", () => {
+    const { container } = render(<Drawer {...baseProps} description={0} open />);
+    const description = screen.getByText("0");
+    expect(description.tagName).toBe("P");
+    expect(description.id).toBeTruthy();
+    expect(container.querySelector("dialog")!.getAttribute("aria-describedby")).toBe(description.id);
+  });
+
+  it("renders numeric zero in the footer and marks the footer present", () => {
+    const { container } = render(<Drawer {...baseProps} footer={0} />);
+    expect(container.querySelector("footer")!.textContent).toBe("0");
+    expect(container.querySelector("dialog")!.dataset.hasFooter).toBe("true");
+  });
+
+  it.each([null, undefined, false, true, ""])("omits absent optional slots for %s", (content) => {
+    const { container } = render(<Drawer {...baseProps} description={content} footer={content} />);
+    expect(container.querySelector(`.${styles.description}`)).toBeNull();
+    expect(container.querySelector("footer")).toBeNull();
+    expect(container.querySelector("dialog")!.hasAttribute("aria-describedby")).toBe(false);
+    expect(container.querySelector("dialog")!.dataset.hasFooter).toBe("false");
+  });
+
+  it.each([
+    ["text", "Content"],
+    ["element", <strong>Content</strong>],
+  ] as const)("preserves %s in the optional slots", (_kind, content) => {
+    const { container } = render(<Drawer {...baseProps} description={content} footer={content} />);
+    const description = container.querySelector(`.${styles.description}`)!;
+    expect(description.textContent).toBe("Content");
+    expect(container.querySelector("footer")!.textContent).toBe("Content");
+    expect(container.querySelector("dialog")!.getAttribute("aria-describedby")).toBe(description.id);
+    expect(container.querySelector("dialog")!.dataset.hasFooter).toBe("true");
+    if (_kind === "element") {
+      expect(description.querySelector("strong")!.textContent).toBe("Content");
+      expect(container.querySelector("footer strong")!.textContent).toBe("Content");
+    }
+  });
+
   it("uses unique ids across instances", () => {
     const { container } = render(<><Drawer {...baseProps} /><Drawer {...baseProps} /></>);
     const ids = Array.from(container.querySelectorAll("dialog"), (dialog) => dialog.getAttribute("aria-labelledby"));
@@ -382,7 +420,7 @@ describe("Drawer CSS contract (not browser layout evidence)", () => {
     "size-lg": "40rem",
     bg: "#ffffff",
     color: "#0f172a",
-    shadow: "-24px 0 48px rgb(15 23 42 / 0.18)",
+    shadow: "var(--_zircon-drawer-shadow-fallback)",
     border: "rgb(226 232 240)",
     backdrop: "rgb(15 23 42 / 0.48)",
     "header-padding": "1rem",
@@ -409,6 +447,23 @@ describe("Drawer CSS contract (not browser layout evidence)", () => {
     expect(css).toContain(`var(--zircon-drawer-${part}-border, var(--zircon-drawer-border, var(--_zircon-drawer-adapter-${part}-border, rgb(226 232 240))))`);
     expect(readme).toContain(`--zircon-drawer-${part}-border`);
     expect(readme).toContain(`--_zircon-drawer-adapter-${part}-border`);
+  });
+
+  it.each([
+    ["right", ".drawer", "-24px 0"],
+    ["left", '.drawer[data-side="left"]', "24px 0"],
+    ["top", '.drawer[data-side="top"]', "0 24px"],
+    ["bottom", '.drawer[data-side="bottom"]', "0 -24px"],
+  ])("orients the %s standalone shadow toward the page interior", (_side, selector, offset) => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const rule = css.match(new RegExp(`${escaped}\\s*{([^}]*)}`))?.[1];
+    expect(rule).toContain(`--_zircon-drawer-shadow-fallback: ${offset} 48px rgb(15 23 42 / 0.18);`);
+  });
+
+  it("keeps public shadow overrides ahead of adapter and directional defaults", () => {
+    expect(css).toContain("box-shadow: var(--zircon-drawer-shadow, var(--_zircon-drawer-adapter-shadow, var(--_zircon-drawer-shadow-fallback)));");
+    expect(css).not.toMatch(/--zircon-drawer-shadow\s*:/);
+    expect(css.match(/box-shadow\s*:/g)).toHaveLength(1);
   });
 
   it("does not shadow inherited public or adapter values on the dialog", () => {

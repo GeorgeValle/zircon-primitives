@@ -3,6 +3,7 @@
 
 .drawer {
   --_zircon-drawer-active-size: var(--zircon-drawer-size-md, var(--_zircon-drawer-adapter-size-md, 28rem));
+  --_zircon-drawer-shadow-fallback: -24px 0 48px rgb(15 23 42 / 0.18);
   --_zircon-drawer-safe-top: 0px;
   --_zircon-drawer-safe-right: 0px;
   --_zircon-drawer-safe-bottom: 0px;
@@ -19,7 +20,7 @@
   border: 0;
   background: var(--zircon-drawer-bg, var(--_zircon-drawer-adapter-bg, #ffffff));
   color: var(--zircon-drawer-color, var(--_zircon-drawer-adapter-color, #0f172a));
-  box-shadow: var(--zircon-drawer-shadow, var(--_zircon-drawer-adapter-shadow, -24px 0 48px rgb(15 23 42 / 0.18)));
+  box-shadow: var(--zircon-drawer-shadow, var(--_zircon-drawer-adapter-shadow, var(--_zircon-drawer-shadow-fallback)));
   overflow: hidden;
 }
 
@@ -55,6 +56,7 @@
 }
 
 .drawer[data-side="left"] {
+  --_zircon-drawer-shadow-fallback: 24px 0 48px rgb(15 23 42 / 0.18);
   --_zircon-drawer-safe-top: env(safe-area-inset-top, 0px);
   --_zircon-drawer-safe-bottom: env(safe-area-inset-bottom, 0px);
   --_zircon-drawer-safe-left: env(safe-area-inset-left, 0px);
@@ -66,6 +68,7 @@
 }
 
 .drawer[data-side="top"] {
+  --_zircon-drawer-shadow-fallback: 0 24px 48px rgb(15 23 42 / 0.18);
   --_zircon-drawer-safe-top: env(safe-area-inset-top, 0px);
   --_zircon-drawer-safe-right: env(safe-area-inset-right, 0px);
   --_zircon-drawer-safe-left: env(safe-area-inset-left, 0px);
@@ -78,6 +81,7 @@
 }
 
 .drawer[data-side="bottom"] {
+  --_zircon-drawer-shadow-fallback: 0 -24px 48px rgb(15 23 42 / 0.18);
   --_zircon-drawer-safe-right: env(safe-area-inset-right, 0px);
   --_zircon-drawer-safe-bottom: env(safe-area-inset-bottom, 0px);
   --_zircon-drawer-safe-left: env(safe-area-inset-left, 0px);

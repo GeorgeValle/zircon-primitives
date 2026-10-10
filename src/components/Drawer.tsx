@@ -24,6 +24,10 @@ export interface DrawerProps {
   ref?: Ref<HTMLDialogElement>;
 }
 
+function hasContent(value: ReactNode) {
+  return value !== null && value !== undefined && typeof value !== "boolean" && value !== "";
+}
+
 export function Drawer({
   children,
   closeLabel,
@@ -83,13 +87,16 @@ export function Drawer({
     if (open) onOpenChange(false);
   };
 
+  const hasDescription = hasContent(description);
+  const hasFooter = hasContent(footer);
+
   return (
     <dialog
-      aria-describedby={description ? descriptionId : undefined}
+      aria-describedby={hasDescription ? descriptionId : undefined}
       aria-labelledby={titleId}
       className={styles.drawer}
       data-zircon-drawer=""
-      data-has-footer={footer ? "true" : "false"}
+      data-has-footer={hasFooter ? "true" : "false"}
       data-side={side}
       data-size={size}
       onCancel={handleCancel}
@@ -99,7 +106,7 @@ export function Drawer({
       <header className={styles.header}>
         <div className={styles.heading}>
           <h2 className={styles.title} id={titleId}>{title}</h2>
-          {description ? <p className={styles.description} id={descriptionId}>{description}</p> : null}
+          {hasDescription ? <p className={styles.description} id={descriptionId}>{description}</p> : null}
         </div>
         <button
           aria-label={closeLabel}
@@ -110,7 +117,7 @@ export function Drawer({
         >×</button>
       </header>
       <div className={styles.body}>{children}</div>
-      {footer ? <footer className={styles.footer}>{footer}</footer> : null}
+      {hasFooter ? <footer className={styles.footer}>{footer}</footer> : null}
     </dialog>
   );
 }

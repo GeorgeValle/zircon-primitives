@@ -99,7 +99,7 @@ reserved for styling integrations, not general consumer customization.
 | `--zircon-drawer-size-lg` | `--_zircon-drawer-adapter-size-lg` | `40rem` |
 | `--zircon-drawer-bg` | `--_zircon-drawer-adapter-bg` | `#ffffff` |
 | `--zircon-drawer-color` | `--_zircon-drawer-adapter-color` | `#0f172a` |
-| `--zircon-drawer-shadow` | `--_zircon-drawer-adapter-shadow` | `-24px 0 48px rgb(15 23 42 / 0.18)` |
+| `--zircon-drawer-shadow` | `--_zircon-drawer-adapter-shadow` | Inward `24px` offset by side, `48px` blur, `rgb(15 23 42 / 0.18)` |
 | `--zircon-drawer-border` | `--_zircon-drawer-adapter-border` | `rgb(226 232 240)` |
 | `--zircon-drawer-header-border` | `--_zircon-drawer-adapter-header-border` | `rgb(226 232 240)` |
 | `--zircon-drawer-footer-border` | `--_zircon-drawer-adapter-footer-border` | `rgb(226 232 240)` |

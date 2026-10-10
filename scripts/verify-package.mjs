@@ -85,8 +85,8 @@ function assertNoNpmrc(directory) {
 
 function assertManifest(manifest) {
   assert.equal(manifest.name, "@zircon-labs/primitives");
-  assert.equal(manifest.version, "0.0.0");
-  assert.equal(manifest.private, true);
+  assert.equal(manifest.version, "0.1.0-beta.1");
+  assert.equal("private" in manifest, false);
   assert.equal(manifest.type, "module");
   assert.equal(manifest.license, "Apache-2.0");
   assert.equal(manifest.main, "./dist/index.js");
@@ -102,7 +102,7 @@ function assertManifest(manifest) {
   assert.deepEqual(manifest.sideEffects, ["**/*.css"]);
   assert.equal(manifest.packageManager, "pnpm@10.33.0");
   assert.equal("engines" in manifest, false);
-  assert.equal("publishConfig" in manifest, false);
+  assert.deepEqual(manifest.publishConfig, { access: "public", tag: "beta" });
 
   for (const field of ["dependencies", "optionalDependencies"]) {
     assert.equal(field in manifest, false, `${field} must be absent`);
@@ -122,7 +122,10 @@ function assertManifest(manifest) {
     );
   }
 
+  assert.equal(manifest.scripts.prepublishOnly, "pnpm check");
+  assert.equal("prepack" in manifest.scripts, false);
   for (const name of Object.keys(manifest.scripts)) {
+    if (name === "prepublishOnly") continue;
     assert.equal(
       /^(?:pre|post)?(?:publish|release|version)/i.test(name),
       false,
@@ -248,6 +251,10 @@ try {
     .split("\n")
     .sort();
   assert.deepEqual(archiveFiles, [...expectedArchiveFiles].sort());
+  const packedManifest = JSON.parse(
+    run("tar", ["-xOzf", tarball, "package/package.json"], { env: isolatedEnv }),
+  );
+  assert.deepEqual(packedManifest.publishConfig, { access: "public", tag: "beta" });
 
   const consumer = join(temporaryRoot, "consumer");
   const consumerManifest = {

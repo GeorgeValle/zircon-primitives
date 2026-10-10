@@ -122,7 +122,10 @@ function assertManifest(manifest) {
     );
   }
 
+  assert.equal(manifest.scripts.prepublishOnly, "pnpm check");
+  assert.equal("prepack" in manifest.scripts, false);
   for (const name of Object.keys(manifest.scripts)) {
+    if (name === "prepublishOnly") continue;
     assert.equal(
       /^(?:pre|post)?(?:publish|release|version)/i.test(name),
       false,

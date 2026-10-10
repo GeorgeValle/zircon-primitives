@@ -32,7 +32,8 @@
     "build": "vite build",
     "test": "vitest run",
     "verify:package": "node scripts/verify-package.mjs",
-    "check": "pnpm typecheck && pnpm build && pnpm test && pnpm verify:package"
+    "check": "pnpm typecheck && pnpm build && pnpm test && pnpm verify:package",
+    "prepublishOnly": "pnpm check"
   },
   "peerDependencies": {
     "react": "^19.0.0"

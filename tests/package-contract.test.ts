@@ -4,6 +4,7 @@
 import { createElement, type Ref } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import * as rootExports from "../src/index.js";
 
 import {
   Button,
@@ -13,6 +14,10 @@ import {
   type ButtonProps,
   type InputProps,
 } from "../src/index.js";
+
+it("keeps the root runtime exports isolated from Drawer", () => {
+  expect(Object.keys(rootExports).sort()).toEqual(["Button", "Divider", "Input", "Skeleton"]);
+});
 
 describe("Button", () => {
   it("defaults to a non-submitting primary medium button", () => {

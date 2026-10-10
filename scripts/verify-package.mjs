@@ -102,7 +102,7 @@ function assertManifest(manifest) {
   assert.deepEqual(manifest.sideEffects, ["**/*.css"]);
   assert.equal(manifest.packageManager, "pnpm@10.33.0");
   assert.equal("engines" in manifest, false);
-  assert.deepEqual(manifest.publishConfig, { access: "public" });
+  assert.deepEqual(manifest.publishConfig, { access: "public", tag: "beta" });
 
   for (const field of ["dependencies", "optionalDependencies"]) {
     assert.equal(field in manifest, false, `${field} must be absent`);
@@ -248,6 +248,10 @@ try {
     .split("\n")
     .sort();
   assert.deepEqual(archiveFiles, [...expectedArchiveFiles].sort());
+  const packedManifest = JSON.parse(
+    run("tar", ["-xOzf", tarball, "package/package.json"], { env: isolatedEnv }),
+  );
+  assert.deepEqual(packedManifest.publishConfig, { access: "public", tag: "beta" });
 
   const consumer = join(temporaryRoot, "consumer");
   const consumerManifest = {

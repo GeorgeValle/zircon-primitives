@@ -23,7 +23,8 @@
     "**/*.css"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "tag": "beta"
   },
   "packageManager": "pnpm@10.33.0",
   "scripts": {

@@ -310,6 +310,31 @@ try {
       "@types/react": "19.2.18",
     },
   };
+
+  // Frozen repository installs provide package contents, but not necessarily the
+  // registry metadata needed to resolve a new consumer without a lockfile.
+  // Prepare public prerequisites separately; neither consumer install uses the network.
+  const prerequisites = join(temporaryRoot, "public-prerequisites");
+  mkdirSync(prerequisites);
+  writeFileSync(
+    join(prerequisites, "package.json"),
+    `${JSON.stringify({
+      name: "package-consumer-prerequisites",
+      private: true,
+      packageManager: manifest.packageManager,
+      dependencies: {
+        react: consumerManifest.dependencies.react,
+        "react-dom": consumerManifest.dependencies["react-dom"],
+        ...consumerManifest.devDependencies,
+      },
+    }, null, 2)}\n`,
+    "utf8",
+  );
+  run(corepack, ["pnpm", "install", "--ignore-scripts", "--registry=https://registry.npmjs.org/"], {
+    cwd: prerequisites,
+    env: isolatedEnv,
+  });
+
   mkdirSync(consumer);
   writeFileSync(
     join(consumer, "package.json"),

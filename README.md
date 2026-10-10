@@ -188,11 +188,13 @@ pnpm check
 Individual checks are available through `pnpm typecheck`, `pnpm build`,
 `pnpm test`, and `pnpm verify:package`.
 
-The tarball consumer check is offline, uses an empty temporary npm configuration,
-and removes authentication variables. Its exact dependency versions must already
-be in the pnpm store; a missing cached dependency is a verification failure, not
-a reason to fall back to the registry. Testing a published version is a separate
-step after an explicitly authorized release.
+Before the offline tarball consumer check, a separate preparation step obtains
+the exact public consumer prerequisites and their registry metadata from
+`https://registry.npmjs.org/`, with scripts disabled, empty temporary npm
+configuration, and authentication variables removed. Both consumer installations
+then remain fully offline, using the local tarball; an offline failure never
+triggers a network fallback. Testing a published version is a separate step
+after an explicitly authorized release.
 
 ### Manual Drawer verification
 

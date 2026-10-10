@@ -113,7 +113,8 @@
   justify-content: space-between;
   gap: var(--zircon-drawer-header-gap, var(--_zircon-drawer-adapter-header-gap, 0.75rem));
   padding-block: calc(var(--zircon-drawer-header-padding, var(--_zircon-drawer-adapter-header-padding, 1rem)) + var(--_zircon-drawer-safe-top)) var(--zircon-drawer-header-padding, var(--_zircon-drawer-adapter-header-padding, 1rem));
-  padding-inline: calc(var(--zircon-drawer-header-padding, var(--_zircon-drawer-adapter-header-padding, 1rem)) + var(--_zircon-drawer-safe-left)) calc(var(--zircon-drawer-header-padding, var(--_zircon-drawer-adapter-header-padding, 1rem)) + var(--_zircon-drawer-safe-right));
+  padding-left: calc(var(--zircon-drawer-header-padding, var(--_zircon-drawer-adapter-header-padding, 1rem)) + var(--_zircon-drawer-safe-left));
+  padding-right: calc(var(--zircon-drawer-header-padding, var(--_zircon-drawer-adapter-header-padding, 1rem)) + var(--_zircon-drawer-safe-right));
   border-block-end: 1px solid var(--zircon-drawer-header-border, var(--zircon-drawer-border, var(--_zircon-drawer-adapter-header-border, rgb(226 232 240))));
 }
 
@@ -166,7 +167,8 @@
   min-block-size: 0;
   overflow: auto;
   padding-block: var(--zircon-drawer-body-padding, var(--_zircon-drawer-adapter-body-padding, 1rem));
-  padding-inline: calc(var(--zircon-drawer-body-padding, var(--_zircon-drawer-adapter-body-padding, 1rem)) + var(--_zircon-drawer-safe-left)) calc(var(--zircon-drawer-body-padding, var(--_zircon-drawer-adapter-body-padding, 1rem)) + var(--_zircon-drawer-safe-right));
+  padding-left: calc(var(--zircon-drawer-body-padding, var(--_zircon-drawer-adapter-body-padding, 1rem)) + var(--_zircon-drawer-safe-left));
+  padding-right: calc(var(--zircon-drawer-body-padding, var(--_zircon-drawer-adapter-body-padding, 1rem)) + var(--_zircon-drawer-safe-right));
 }
 
 .drawer[data-has-footer="false"] .body {
@@ -176,7 +178,8 @@
 .footer {
   flex: 0 0 auto;
   padding-block: var(--zircon-drawer-footer-padding, var(--_zircon-drawer-adapter-footer-padding, 1rem)) calc(var(--zircon-drawer-footer-padding, var(--_zircon-drawer-adapter-footer-padding, 1rem)) + var(--_zircon-drawer-safe-bottom));
-  padding-inline: calc(var(--zircon-drawer-footer-padding, var(--_zircon-drawer-adapter-footer-padding, 1rem)) + var(--_zircon-drawer-safe-left)) calc(var(--zircon-drawer-footer-padding, var(--_zircon-drawer-adapter-footer-padding, 1rem)) + var(--_zircon-drawer-safe-right));
+  padding-left: calc(var(--zircon-drawer-footer-padding, var(--_zircon-drawer-adapter-footer-padding, 1rem)) + var(--_zircon-drawer-safe-left));
+  padding-right: calc(var(--zircon-drawer-footer-padding, var(--_zircon-drawer-adapter-footer-padding, 1rem)) + var(--_zircon-drawer-safe-right));
   border-block-start: 1px solid var(--zircon-drawer-footer-border, var(--zircon-drawer-border, var(--_zircon-drawer-adapter-footer-border, rgb(226 232 240))));
 }
 

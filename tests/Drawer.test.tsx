@@ -504,6 +504,14 @@ describe("Drawer CSS contract (not browser layout evidence)", () => {
     expect(readme).toContain(`--_zircon-drawer-adapter-${part}-border`);
   });
 
+  it.each(["header", "body", "footer"])("maps %s safe-area padding to physical edges", (part) => {
+    const rule = css.match(new RegExp(`\\.${part}\\s*{([^}]*)}`))?.[1];
+    const padding = `var(--zircon-drawer-${part}-padding, var(--_zircon-drawer-adapter-${part}-padding, 1rem))`;
+    expect(rule).toContain(`padding-left: calc(${padding} + var(--_zircon-drawer-safe-left));`);
+    expect(rule).toContain(`padding-right: calc(${padding} + var(--_zircon-drawer-safe-right));`);
+    expect(css).not.toMatch(/padding-inline(?:-(?:start|end))?\s*:/);
+  });
+
   it.each([
     ["right", ".drawer", "-24px 0"],
     ["left", '.drawer[data-side="left"]', "24px 0"],

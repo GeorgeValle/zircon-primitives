@@ -6,7 +6,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createRef, StrictMode } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { hydrateRoot, type Root } from "react-dom/client";
+import { renderToStaticMarkup, renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Drawer } from "../src/drawer.js";
@@ -90,7 +91,7 @@ describe("Drawer native lifecycle", () => {
   it("renders numeric zero as description text and associates its ARIA id", () => {
     const { container } = render(<Drawer {...baseProps} description={0} open />);
     const description = screen.getByText("0");
-    expect(description.tagName).toBe("P");
+    expect(description.tagName).toBe("DIV");
     expect(description.id).toBeTruthy();
     expect(container.querySelector("dialog")!.getAttribute("aria-describedby")).toBe(description.id);
   });
@@ -123,6 +124,16 @@ describe("Drawer native lifecycle", () => {
       expect(description.querySelector("strong")!.textContent).toBe("Content");
       expect(container.querySelector("footer strong")!.textContent).toBe("Content");
     }
+  });
+
+  it.each(["div", "p"] as const)("renders a %s description node with its ARIA association", (Block) => {
+    const { container } = render(<Drawer {...baseProps} description={<Block>Rich description</Block>} open />);
+    const description = container.querySelector(`.${styles.description}`)!;
+    expect(description.tagName).toBe("DIV");
+    expect(description.firstElementChild!.tagName).toBe(Block.toUpperCase());
+    expect(description.textContent).toBe("Rich description");
+    expect(description.id).toBeTruthy();
+    expect(container.querySelector("dialog")!.getAttribute("aria-describedby")).toBe(description.id);
   });
 
   it("uses unique ids across instances", () => {
@@ -410,6 +421,50 @@ describe("Drawer refs and SSR", () => {
     expect(markup).toContain("aria-describedby=");
     expect(markup).not.toMatch(/<dialog[^>]*\sopen(?:=|\s|>)/);
     expect(showModal).not.toHaveBeenCalled();
+  });
+
+  it.each(["div", "p"] as const)("preserves a %s description through the HTML parser and hydration", async (Block) => {
+    const element = <Drawer {...baseProps} description={<Block data-description-block="">Rich description</Block>} />;
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const recoverableError = vi.fn();
+    // Spies retain the original console output; any reported warning fails this test.
+    const consoleError = vi.spyOn(console, "error");
+    const consoleWarn = vi.spyOn(console, "warn");
+    let root: Root | undefined;
+
+    try {
+      container.innerHTML = renderToString(element);
+      const dialog = container.querySelector("dialog")!;
+      const description = container.querySelector(`.${styles.description}`)!;
+      const block = container.querySelector("[data-description-block]")!;
+      const descriptionId = description.id;
+      expect(descriptionId).toBeTruthy();
+      expect(dialog.getAttribute("aria-describedby")).toBe(descriptionId);
+      expect(description.contains(block)).toBe(true);
+      expect(description.tagName).toBe("DIV");
+      expect(block.tagName).toBe(Block.toUpperCase());
+      expect(block.textContent).toBe("Rich description");
+
+      await act(async () => {
+        root = hydrateRoot(container, element, { onRecoverableError: recoverableError });
+      });
+      expect(container.querySelector(`.${styles.description}`)).toBe(description);
+      expect(description.querySelector("[data-description-block]")).toBe(block);
+      expect(description.id).toBe(descriptionId);
+      expect(dialog.getAttribute("aria-describedby")).toBe(descriptionId);
+      expect(recoverableError).not.toHaveBeenCalled();
+      expect(consoleError).not.toHaveBeenCalled();
+      expect(consoleWarn).not.toHaveBeenCalled();
+    } finally {
+      try {
+        if (root) await act(async () => { root!.unmount(); });
+      } finally {
+        container.remove();
+        consoleError.mockRestore();
+        consoleWarn.mockRestore();
+      }
+    }
   });
 });
 

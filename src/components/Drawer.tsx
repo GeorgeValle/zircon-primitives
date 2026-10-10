@@ -106,7 +106,7 @@ export function Drawer({
       <header className={styles.header}>
         <div className={styles.heading}>
           <h2 className={styles.title} id={titleId}>{title}</h2>
-          {hasDescription ? <p className={styles.description} id={descriptionId}>{description}</p> : null}
+          {hasDescription ? <div className={styles.description} id={descriptionId}>{description}</div> : null}
         </div>
         <button
           aria-label={closeLabel}

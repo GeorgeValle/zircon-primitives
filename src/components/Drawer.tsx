@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode, type Ref, type SyntheticEvent } from "react";
+import { useEffect, useId, useMemo, useRef, type ReactNode, type Ref, type SyntheticEvent } from "react";
 
 import styles from "./Drawer.module.css";
 import { composeRefs } from "../internal/composeRefs.js";
@@ -45,10 +45,7 @@ export function Drawer({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const pendingInternalCloses = useRef(0);
   // Ref identity is an imperative contract: do not detach it on unrelated renders.
-  const composedRef = useRef({ ref, callback: composeRefs(dialogRef, ref) });
-  if (composedRef.current.ref !== ref) {
-    composedRef.current = { ref, callback: composeRefs(dialogRef, ref) };
-  }
+  const composedRef = useMemo(() => composeRefs(dialogRef, ref), [ref]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -102,7 +99,7 @@ export function Drawer({
       data-size={size}
       onCancel={handleCancel}
       onClose={handleClose}
-      ref={composedRef.current.callback}
+      ref={composedRef}
     >
       <header className={styles.header}>
         <div className={styles.heading}>

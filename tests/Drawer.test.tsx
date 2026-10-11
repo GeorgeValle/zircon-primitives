@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { createRef, StrictMode } from "react";
+import { createRef, startTransition, StrictMode, Suspense, useState } from "react";
 import { hydrateRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup, renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -439,6 +439,82 @@ describe("Drawer native lifecycle", () => {
 });
 
 describe("Drawer refs and SSR", () => {
+  it("keeps the committed ref intact after abandoning a transition that rendered Drawer with another ref", async () => {
+    const disposeA = vi.fn();
+    const disposeB = vi.fn();
+    const refA = vi.fn((_dialog: HTMLDialogElement | null) => disposeA);
+    const refB = vi.fn((_dialog: HTMLDialogElement | null) => disposeB);
+    const attemptedB = vi.fn();
+    const pending = new Promise<void>(() => {});
+
+    function Body({ suspend }: { suspend: boolean }) {
+      if (suspend) {
+        attemptedB();
+        throw pending;
+      }
+      return <p>Committed body</p>;
+    }
+
+    function Harness() {
+      const [state, setState] = useState({ suspend: false, title: "Committed title" });
+      return <>
+        <button onClick={() => startTransition(() => setState({ suspend: true, title: "Pending title" }))}>Try B</button>
+        <button onClick={() => setState({ suspend: false, title: "Urgent title" })}>Keep A</button>
+        <Suspense fallback={<p>Pending fallback</p>}>
+          <Drawer {...baseProps} open ref={state.suspend ? refB : refA} title={state.title}>
+            <Body suspend={state.suspend} />
+          </Drawer>
+        </Suspense>
+      </>;
+    }
+
+    const { container, unmount } = render(<Harness />);
+    try {
+      const dialog = container.querySelector("dialog")!;
+      expect(refA).toHaveBeenCalledExactlyOnceWith(dialog);
+      await act(async () => { fireEvent.click(screen.getByText("Try B")); });
+      // Body is a descendant: reaching its render proves Drawer rendered with B.
+      expect(attemptedB).toHaveBeenCalled();
+      expect(refB).not.toHaveBeenCalled();
+      expect(disposeA).not.toHaveBeenCalled();
+      expect(container.querySelector("dialog")).toBe(dialog);
+      expect(dialog.open).toBe(true);
+      expect(screen.queryByText("Pending fallback")).toBeNull();
+      expect(screen.getByText("Committed title")).toBeTruthy();
+
+      await act(async () => { fireEvent.click(screen.getByText("Keep A")); });
+      expect(screen.getByText("Urgent title")).toBeTruthy();
+      expect(disposeA).not.toHaveBeenCalled();
+      expect(refA).toHaveBeenCalledExactlyOnceWith(dialog);
+      expect(refB).not.toHaveBeenCalled();
+      expect(disposeB).not.toHaveBeenCalled();
+      expect(container.querySelector("dialog")).toBe(dialog);
+      expect(dialog.open).toBe(true);
+    } finally {
+      unmount();
+    }
+    expect(disposeA).toHaveBeenCalledTimes(1);
+    expect(refB).not.toHaveBeenCalled();
+    expect(disposeB).not.toHaveBeenCalled();
+  });
+
+  it("cleans a committed callback ref A, connects B, and cleans B on unmount", () => {
+    const disposeA = vi.fn();
+    const disposeB = vi.fn();
+    const refA = vi.fn((_dialog: HTMLDialogElement | null) => disposeA);
+    const refB = vi.fn((_dialog: HTMLDialogElement | null) => disposeB);
+    const { container, rerender, unmount } = render(<Drawer {...baseProps} ref={refA} />);
+    const dialog = container.querySelector("dialog")!;
+    expect(refA).toHaveBeenCalledExactlyOnceWith(dialog);
+    rerender(<Drawer {...baseProps} ref={refB} />);
+    expect(disposeA).toHaveBeenCalledTimes(1);
+    expect(refB).toHaveBeenCalledExactlyOnceWith(dialog);
+    expect(disposeB).not.toHaveBeenCalled();
+    unmount();
+    expect(disposeA).toHaveBeenCalledTimes(1);
+    expect(disposeB).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps callback refs attached across unrelated renders and detaches with null", () => {
     const ref = vi.fn<(value: HTMLDialogElement | null) => void>();
     const { rerender, unmount } = render(<Drawer {...baseProps} ref={ref} />);

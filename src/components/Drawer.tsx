@@ -79,12 +79,12 @@ export function Drawer({
     onOpenChange(false);
   };
 
-  const handleClose = () => {
+  const handleClose = (event: SyntheticEvent<HTMLDialogElement>) => {
     if (pendingInternalCloses.current > 0) {
       pendingInternalCloses.current -= 1;
       return;
     }
-    if (open) onOpenChange(false);
+    if (open && !event.currentTarget.open) onOpenChange(false);
   };
 
   const hasDescription = hasContent(description);
@@ -105,7 +105,7 @@ export function Drawer({
     >
       <header className={styles.header}>
         <div className={styles.heading}>
-          <h2 className={styles.title} id={titleId}>{title}</h2>
+          <div className={styles.title} id={titleId} role="heading" aria-level={2}>{title}</div>
           {hasDescription ? <div className={styles.description} id={descriptionId}>{description}</div> : null}
         </div>
         <button

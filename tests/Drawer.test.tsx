@@ -82,6 +82,23 @@ describe("Drawer native lifecycle", () => {
     expect(renderToStaticMarkup(<Drawer {...baseProps} />)).toContain("autofocus=");
   });
 
+  it("keeps a text title as an accessible level-two heading and dialog name", () => {
+    render(<Drawer {...baseProps} open />);
+    const heading = screen.getByRole("heading", { level: 2, name: "Drawer title" });
+    expect(heading.id).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Drawer title" }).getAttribute("aria-labelledby")).toBe(heading.id);
+  });
+
+  it.each(["h3", "div"] as const)("keeps a %s title inside its labelled container", (Block) => {
+    const { container } = render(<Drawer {...baseProps} title={<Block>Details</Block>} open />);
+    const title = container.querySelector(`.${styles.title}`)!;
+    expect(title.tagName).toBe("DIV");
+    expect(title.firstElementChild!.tagName).toBe(Block.toUpperCase());
+    expect(title.textContent).toBe("Details");
+    expect(title.id).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Details" }).getAttribute("aria-labelledby")).toBe(title.id);
+  });
+
   it("omits optional anatomy and description references", () => {
     const { container } = render(<Drawer {...baseProps} />);
     expect(container.querySelector("dialog")!.hasAttribute("aria-describedby")).toBe(false);
@@ -190,6 +207,31 @@ describe("Drawer native lifecycle", () => {
     expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
     act(() => ref.current!.close());
     expect(tasks).toHaveLength(0);
+  });
+
+  it.each([0, 2])("ignores an old external close after reopening with %s internal closes pending", (internalCloses) => {
+    const ref = createRef<HTMLDialogElement>();
+    const onOpenChange = vi.fn();
+    const props = { ...baseProps, open: true, ref, onOpenChange };
+    const { rerender } = render(<Drawer {...props} />);
+    for (let cycle = 0; cycle < internalCloses; cycle++) {
+      rerender(<Drawer {...props} open={false} />);
+      rerender(<Drawer {...props} />);
+    }
+    act(() => ref.current!.close());
+    expect(ref.current!.open).toBe(false);
+    rerender(<Drawer {...props} open={false} />);
+    rerender(<Drawer {...props} />);
+    expect(tasks).toHaveLength(internalCloses + 1);
+    for (let event = 0; event <= internalCloses; event++) {
+      flushCloseEvents(1);
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(ref.current!.open).toBe(true);
+    }
+    act(() => ref.current!.close());
+    expect(ref.current!.open).toBe(false);
+    flushCloseEvents();
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
   });
 
   it("ignores close events while controlled closed", () => {
@@ -421,6 +463,50 @@ describe("Drawer refs and SSR", () => {
     expect(markup).toContain("aria-describedby=");
     expect(markup).not.toMatch(/<dialog[^>]*\sopen(?:=|\s|>)/);
     expect(showModal).not.toHaveBeenCalled();
+  });
+
+  it.each(["h3", "div"] as const)("preserves a %s title through the HTML parser and hydration", async (Block) => {
+    const element = <Drawer {...baseProps} title={<Block data-title-block="">Details</Block>} />;
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const recoverableError = vi.fn();
+    const consoleError = vi.spyOn(console, "error");
+    const consoleWarn = vi.spyOn(console, "warn");
+    let root: Root | undefined;
+
+    try {
+      container.innerHTML = renderToString(element);
+      const dialog = container.querySelector("dialog")!;
+      const title = container.querySelector(`.${styles.title}`)!;
+      const block = container.querySelector("[data-title-block]")!;
+      const titleId = title.id;
+      expect(titleId).toBeTruthy();
+      expect(dialog.getAttribute("aria-labelledby")).toBe(titleId);
+      expect(title.contains(block)).toBe(true);
+      expect(block.tagName).toBe(Block.toUpperCase());
+      expect(title.textContent).toBe("Details");
+
+      await act(async () => {
+        root = hydrateRoot(container, element, { onRecoverableError: recoverableError });
+      });
+      expect(container.querySelector("dialog")).toBe(dialog);
+      expect(container.querySelector(`.${styles.title}`)).toBe(title);
+      expect(title.querySelector("[data-title-block]")).toBe(block);
+      expect(title.id).toBe(titleId);
+      expect(title.textContent).toBe("Details");
+      expect(dialog.getAttribute("aria-labelledby")).toBe(titleId);
+      expect(recoverableError).not.toHaveBeenCalled();
+      expect(consoleError).not.toHaveBeenCalled();
+      expect(consoleWarn).not.toHaveBeenCalled();
+    } finally {
+      try {
+        if (root) await act(async () => { root!.unmount(); });
+      } finally {
+        container.remove();
+        consoleError.mockRestore();
+        consoleWarn.mockRestore();
+      }
+    }
   });
 
   it.each(["div", "p"] as const)("preserves a %s description through the HTML parser and hydration", async (Block) => {

@@ -89,6 +89,7 @@ export function Drawer({
 
   const hasDescription = hasContent(description);
   const hasFooter = hasContent(footer);
+  const isPlainTitle = typeof title === "string" || typeof title === "number";
 
   return (
     <dialog
@@ -105,7 +106,7 @@ export function Drawer({
     >
       <header className={styles.header}>
         <div className={styles.heading}>
-          <div className={styles.title} id={titleId} role="heading" aria-level={2}>{title}</div>
+          <div className={styles.title} id={titleId} role={isPlainTitle ? "heading" : undefined} aria-level={isPlainTitle ? 2 : undefined}>{title}</div>
           {hasDescription ? <div className={styles.description} id={descriptionId}>{description}</div> : null}
         </div>
         <button

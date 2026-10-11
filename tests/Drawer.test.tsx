@@ -82,11 +82,11 @@ describe("Drawer native lifecycle", () => {
     expect(renderToStaticMarkup(<Drawer {...baseProps} />)).toContain("autofocus=");
   });
 
-  it("keeps a text title as an accessible level-two heading and dialog name", () => {
-    render(<Drawer {...baseProps} open />);
-    const heading = screen.getByRole("heading", { level: 2, name: "Drawer title" });
+  it.each(["Drawer title", 42, 0])("keeps title %s as an accessible level-two heading and dialog name", (title) => {
+    render(<Drawer {...baseProps} title={title} open />);
+    const heading = screen.getByRole("heading", { level: 2, name: String(title) });
     expect(heading.id).toBeTruthy();
-    expect(screen.getByRole("dialog", { name: "Drawer title" }).getAttribute("aria-labelledby")).toBe(heading.id);
+    expect(screen.getByRole("dialog", { name: String(title) }).getAttribute("aria-labelledby")).toBe(heading.id);
   });
 
   it.each(["h3", "div"] as const)("keeps a %s title inside its labelled container", (Block) => {
@@ -96,6 +96,23 @@ describe("Drawer native lifecycle", () => {
     expect(title.firstElementChild!.tagName).toBe(Block.toUpperCase());
     expect(title.textContent).toBe("Details");
     expect(title.id).toBeTruthy();
+    expect(title.hasAttribute("role")).toBe(false);
+    expect(title.hasAttribute("aria-level")).toBe(false);
+    const headings = screen.queryAllByRole("heading");
+    if (Block === "h3") {
+      expect(headings).toEqual([screen.getByRole("heading", { level: 3, name: "Details" })]);
+    } else {
+      expect(headings).toHaveLength(0);
+    }
+    expect(screen.getByRole("dialog", { name: "Details" }).getAttribute("aria-labelledby")).toBe(title.id);
+  });
+
+  it("leaves heading semantics to a title fragment without inspecting its children", () => {
+    const { container } = render(<Drawer {...baseProps} title={<><h3>Details</h3></>} open />);
+    const title = container.querySelector(`.${styles.title}`)!;
+    expect(title.hasAttribute("role")).toBe(false);
+    expect(title.hasAttribute("aria-level")).toBe(false);
+    expect(screen.getAllByRole("heading")).toEqual([screen.getByRole("heading", { level: 3, name: "Details" })]);
     expect(screen.getByRole("dialog", { name: "Details" }).getAttribute("aria-labelledby")).toBe(title.id);
   });
 

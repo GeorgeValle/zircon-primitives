@@ -61,6 +61,9 @@ and responds to close requests. `side` is `right` (default), `left`, `top`, or
 (default), `lg`, or `full`. The React 19 `ref` targets the native
 `HTMLDialogElement`.
 
+Text and number titles receive level-two heading semantics. For rich titles,
+the container is semantically neutral and the consumer supplies heading semantics.
+
 Drawer opens with `showModal()` after mounting. Escape prevents the native
 `cancel` default and requests `onOpenChange(false)`; the close button also only
 requests controlled state. Native `close` events synchronize an external close.

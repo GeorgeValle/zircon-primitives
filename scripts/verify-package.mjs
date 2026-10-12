@@ -20,8 +20,11 @@ const corepack = process.platform === "win32" ? "corepack.cmd" : "corepack";
 const expectedPackageFiles = [
   "dist/components/Button.d.ts",
   "dist/components/Divider.d.ts",
+  "dist/components/Drawer.d.ts",
   "dist/components/Input.d.ts",
   "dist/components/Skeleton.d.ts",
+  "dist/drawer.d.ts",
+  "dist/drawer.js",
   "dist/index.d.ts",
   "dist/index.js",
   "dist/styles.css",
@@ -32,10 +35,13 @@ const expectedPackageFiles = [
 ];
 const expectedArchiveFiles = expectedPackageFiles.map((path) => `package/${path}`);
 const expectedDevDependencies = {
+  "@testing-library/dom": "10.4.1",
+  "@testing-library/react": "16.3.2",
   "@types/node": "24.13.3",
   "@types/react": "19.2.18",
   "@types/react-dom": "19.2.7",
   "@typescript/native": "npm:typescript@7.0.2",
+  jsdom: "29.1.1",
   react: "19.2.8",
   "react-dom": "19.2.8",
   typescript: "npm:@typescript/typescript6@6.0.2",
@@ -85,7 +91,7 @@ function assertNoNpmrc(directory) {
 
 function assertManifest(manifest) {
   assert.equal(manifest.name, "@zircon-labs/primitives");
-  assert.equal(manifest.version, "0.1.0-beta.1");
+  assert.equal(manifest.version, "0.1.0-beta.2");
   assert.equal("private" in manifest, false);
   assert.equal(manifest.type, "module");
   assert.equal(manifest.license, "Apache-2.0");
@@ -98,6 +104,10 @@ function assertManifest(manifest) {
       import: "./dist/index.js",
     },
     "./styles.css": "./dist/styles.css",
+    "./drawer": {
+      types: "./dist/drawer.d.ts",
+      import: "./dist/drawer.js",
+    },
   });
   assert.deepEqual(manifest.sideEffects, ["**/*.css"]);
   assert.equal(manifest.packageManager, "pnpm@10.33.0");
@@ -143,16 +153,17 @@ try {
   writeFileSync(userConfig, "", "utf8");
 
   const isolatedEnv = { ...process.env };
-  for (const name of [
-    "NPM_TOKEN",
-    "NODE_AUTH_TOKEN",
-    "npm_token",
-    "node_auth_token",
-  ]) {
-    delete isolatedEnv[name];
+  for (const name of Object.keys(isolatedEnv)) {
+    if (/^(?:npm_token|node_auth_token)$/i.test(name) || /^npm_config_.*(?:auth|token|password|username)/i.test(name)) {
+      delete isolatedEnv[name];
+    }
   }
   isolatedEnv.NPM_CONFIG_USERCONFIG = userConfig;
   isolatedEnv.npm_config_userconfig = userConfig;
+  const globalConfig = join(temporaryRoot, "global-npmrc");
+  writeFileSync(globalConfig, "", "utf8");
+  isolatedEnv.NPM_CONFIG_GLOBALCONFIG = globalConfig;
+  isolatedEnv.npm_config_globalconfig = globalConfig;
 
   const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
   assertManifest(manifest);
@@ -164,11 +175,26 @@ try {
 
   const bundle = readFileSync(join(root, "dist", "index.js"), "utf8");
   assert.match(bundle, /from ["']react\/jsx-runtime["']/);
+  assert.doesNotMatch(bundle, /["']use client["']|Drawer|composeRefs/);
   assert.doesNotMatch(bundle, /@zircon-labs\/iu|react\.production|minified React error/i);
   const exportedNames = bundle.match(/export \{([^}]+)\}/)?.[1] ?? "";
   for (const name of ["Button", "Divider", "Input", "Skeleton"]) {
     assert.match(exportedNames, new RegExp(`\\b${name}\\b`), `Missing public export: ${name}`);
   }
+
+  const drawerBundle = readFileSync(join(root, "dist", "drawer.js"), "utf8");
+  assert.match(drawerBundle, /^"use client";/);
+  assert.equal((drawerBundle.match(/["']use client["']/g) ?? []).length, 1);
+  assert.doesNotMatch(drawerBundle, /@zircon-labs\/iu|--_?iu-|sourceMappingURL/);
+  for (const entry of [bundle, drawerBundle]) {
+    assert.doesNotMatch(entry, /(?:from\s*|import\s*\()["']\./);
+    assert.doesNotMatch(entry, /sourceMappingURL/);
+  }
+  const drawerTypes = readFileSync(join(root, "dist", "drawer.d.ts"), "utf8");
+  assert.match(drawerTypes, /DrawerProps.*DrawerSide.*DrawerSize/);
+  const componentTypes = readFileSync(join(root, "dist", "components", "Drawer.d.ts"), "utf8");
+  assert.match(componentTypes, /HTMLDialogElement/);
+  assert.doesNotMatch(componentTypes, /internal\//);
 
   const stylesheet = readFileSync(join(root, "dist", "styles.css"), "utf8");
   for (const token of [
@@ -185,7 +211,17 @@ try {
   ]) {
     assert.ok(stylesheet.includes(token), `Missing public CSS token: ${token}`);
   }
-  assert.doesNotMatch(stylesheet, /--iu-|@zircon-labs\/iu/);
+  assert.doesNotMatch(stylesheet, /--_?iu-|@zircon-labs\/iu|sourceMappingURL/);
+  for (const suffix of [
+    "size-sm", "size-md", "size-lg", "bg", "color", "shadow", "border",
+    "header-border", "footer-border", "backdrop", "header-padding", "body-padding",
+    "footer-padding", "header-gap", "title-font-size", "title-font-weight",
+    "description-gap", "description-color", "description-font-size", "close-radius",
+    "close-hover-bg", "focus-ring-color",
+  ]) {
+    assert.ok(stylesheet.includes(`--zircon-drawer-${suffix}`));
+    assert.ok(stylesheet.includes(`--_zircon-drawer-adapter-${suffix}`));
+  }
   assert.match(stylesheet, /@media\s*\(forced-colors:\s*active\)/);
   assert.equal(
     (stylesheet.match(/outline:2px solid Highlight/gi) ?? []).length,
@@ -255,6 +291,8 @@ try {
     run("tar", ["-xOzf", tarball, "package/package.json"], { env: isolatedEnv }),
   );
   assert.deepEqual(packedManifest.publishConfig, { access: "public", tag: "beta" });
+  assert.equal(packedManifest.version, manifest.version);
+  assert.deepEqual(packedManifest.exports, manifest.exports);
 
   const consumer = join(temporaryRoot, "consumer");
   const consumerManifest = {
@@ -268,14 +306,42 @@ try {
       react: "19.2.8",
       "react-dom": "19.2.8",
     },
+    devDependencies: {
+      "@types/react": "19.2.18",
+    },
   };
+
+  // Frozen repository installs provide package contents, but not necessarily the
+  // registry metadata needed to resolve a new consumer without a lockfile.
+  // Prepare public prerequisites separately; neither consumer install uses the network.
+  const prerequisites = join(temporaryRoot, "public-prerequisites");
+  mkdirSync(prerequisites);
+  writeFileSync(
+    join(prerequisites, "package.json"),
+    `${JSON.stringify({
+      name: "package-consumer-prerequisites",
+      private: true,
+      packageManager: manifest.packageManager,
+      dependencies: {
+        react: consumerManifest.dependencies.react,
+        "react-dom": consumerManifest.dependencies["react-dom"],
+        ...consumerManifest.devDependencies,
+      },
+    }, null, 2)}\n`,
+    "utf8",
+  );
+  run(corepack, ["pnpm", "install", "--ignore-scripts", "--registry=https://registry.npmjs.org/"], {
+    cwd: prerequisites,
+    env: isolatedEnv,
+  });
+
   mkdirSync(consumer);
   writeFileSync(
     join(consumer, "package.json"),
     `${JSON.stringify(consumerManifest, null, 2)}\n`,
     "utf8",
   );
-  run(corepack, ["pnpm", "install", "--ignore-scripts", "--registry=https://registry.npmjs.org/"], {
+  run(corepack, ["pnpm", "install", "--offline", "--ignore-scripts"], {
     cwd: consumer,
     env: isolatedEnv,
   });
@@ -289,7 +355,16 @@ try {
     import { fileURLToPath } from "node:url";
     import { createElement } from "react";
     import { renderToStaticMarkup } from "react-dom/server";
+    import * as rootExports from "@zircon-labs/primitives";
     import { Button, Divider, Input, Skeleton } from "@zircon-labs/primitives";
+    import { Drawer } from "@zircon-labs/primitives/drawer";
+
+    if (Object.keys(rootExports).sort().join(",") !== "Button,Divider,Input,Skeleton") process.exit(1);
+    const drawer = renderToStaticMarkup(createElement(Drawer, {
+      open: true, onOpenChange() {}, title: "Details", closeLabel: "Close", children: "Body",
+    }));
+    if (!drawer.includes("data-zircon-drawer") || !drawer.includes("aria-labelledby")) process.exit(1);
+    if (/<dialog[^>]*\\sopen(?:=|\\s|>)/.test(drawer)) process.exit(1);
 
     const button = renderToStaticMarkup(createElement(Button, { variant: "danger" }, "Remove"));
     const divider = renderToStaticMarkup(createElement(Divider, { label: "Section" }));
@@ -307,6 +382,25 @@ try {
     cwd: consumer,
     env: isolatedEnv,
   });
+  const typeFixture = join(consumer, "consumer-check.tsx");
+  writeFileSync(typeFixture, `
+    import { createRef } from "react";
+    import { Drawer, type DrawerProps, type DrawerSide, type DrawerSize } from "@zircon-labs/primitives/drawer";
+    import { Button, Divider, Input, Skeleton } from "@zircon-labs/primitives";
+    // @ts-expect-error Drawer is not a root export.
+    import { Drawer as RootDrawer } from "@zircon-labs/primitives";
+    const side: DrawerSide = "left";
+    const size: DrawerSize = "sm";
+    const props: DrawerProps = {
+      open: false, onOpenChange() {}, title: "Details", closeLabel: "Close", children: "Body",
+      ref: createRef<HTMLDialogElement>(), side, size,
+    };
+    <><Drawer {...props} /><Button /><Divider /><Input /><Skeleton /></>;
+  `, "utf8");
+  run(process.execPath, [
+    join(root, "scripts", "tsc-native.mjs"), "--noEmit", "--strict", "--jsx", "react-jsx",
+    "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", typeFixture,
+  ], { cwd: consumer, env: isolatedEnv });
 } catch (error) {
   verificationError = error;
 } finally {

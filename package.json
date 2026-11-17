@@ -1,6 +1,6 @@
 {
   "name": "@zircon-labs/primitives",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "description": "Public React UI primitives for Zircon projects.",
   "license": "Apache-2.0",
   "type": "module",

@@ -16,7 +16,7 @@ import {
 } from "../src/index.js";
 
 it("keeps the root runtime exports isolated from Drawer", () => {
-  expect(Object.keys(rootExports).sort()).toEqual(["Button", "Divider", "Input", "Skeleton"]);
+  expect(Object.keys(rootExports).sort()).toEqual(["Button", "Checkbox", "Divider", "Input", "RadioGroup", "Skeleton"]);
 });
 
 describe("Button", () => {

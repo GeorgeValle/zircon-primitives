@@ -1,0 +1,21 @@
+/* SPDX-FileCopyrightText: 2026 Jorge Guillermo Valle */
+/* SPDX-License-Identifier: Apache-2.0 */
+
+.root { border: 0; padding: 0; margin: 0; min-width: 0; max-width: 100%; display: inline-flex; flex-direction: column; gap: var(--zircon-radio-group-gap, 0.5rem); color: var(--zircon-radio-group-color, #0f172a); font: inherit; }
+.fullWidth { width: 100%; }
+.legend { font-weight: 700; padding: 0 0 0.25rem; }
+.required, .error { color: var(--zircon-radio-group-error-color, #b91c1c); }
+.options { display: flex; flex-direction: column; gap: var(--zircon-radio-group-option-gap, 0.5rem); }
+.horizontal { flex-direction: row; flex-wrap: wrap; }
+.option { display: inline-flex; align-items: flex-start; gap: var(--zircon-radio-group-control-gap, 0.5rem); cursor: pointer; }
+.content { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.control { accent-color: var(--zircon-radio-group-accent, #2563eb); width: var(--zircon-radio-group-size, 1.125rem); height: var(--zircon-radio-group-size, 1.125rem); margin: 0.125rem 0 0; flex: none; }
+.compact .control { width: var(--zircon-radio-group-size-compact, 1rem); height: var(--zircon-radio-group-size-compact, 1rem); }
+.control:focus-visible { outline: 2px solid var(--zircon-radio-group-focus, #2563eb); outline-offset: 2px; }
+.hint, .error { font-size: var(--zircon-radio-group-message-font-size, 0.8125rem); overflow-wrap: anywhere; }
+.hint { color: var(--zircon-radio-group-hint-color, #475569); font-weight: 400; }
+.error { font-weight: 600; }
+.invalid .control { outline-color: var(--zircon-radio-group-error-color, #b91c1c); }
+.disabled { opacity: var(--zircon-radio-group-disabled-opacity, 0.7); }
+.disabled .option, .option.disabled { cursor: not-allowed; }
+@media (forced-colors: active) { .control:focus-visible { outline-color: Highlight; } }

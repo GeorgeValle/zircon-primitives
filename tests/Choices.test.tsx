@@ -64,4 +64,42 @@ describe("RadioGroup", () => {
     expect((screen.getByRole("group") as HTMLFieldSetElement).disabled).toBe(true);
     expect((screen.getByRole("radio", { name: "Alpha" }) as HTMLInputElement).disabled).toBe(true);
   });
+  it("preserves uncontrolled selection, focus, and IDs across reorder and insertion", () => {
+    const a = { value: "a", label: "Alpha", description: "Alpha description" };
+    const b = { value: "b", label: "Beta", description: "Beta description" };
+    const inserted = { value: "new", label: "New" };
+    const { rerender } = render(<RadioGroup name="choice" options={[a, b]} />);
+    const radio = screen.getByRole("radio", { name: "Beta" }) as HTMLInputElement;
+    fireEvent.click(radio);
+    radio.focus();
+    const id = radio.id;
+    const descriptionId = radio.getAttribute("aria-describedby");
+
+    for (const reordered of [[b, a], [inserted, b, a]]) {
+      rerender(<RadioGroup name="choice" options={reordered} />);
+      const current = screen.getByRole("radio", { name: "Beta" }) as HTMLInputElement;
+      expect(current).toBe(radio);
+      expect(current.checked).toBe(true);
+      expect(document.activeElement).toBe(current);
+      expect(current.id).toBe(id);
+      expect(current.getAttribute("aria-describedby")).toBe(descriptionId);
+      expect(screen.getByText("Beta description").id).toBe(descriptionId);
+    }
+  });
+  it("associates radios with an external form for submission and validation", () => {
+    render(<><form id="checkout" data-testid="checkout" /><RadioGroup form="checkout" name="choice" label="Choice" options={options} required /></>);
+    const form = screen.getByTestId("checkout") as HTMLFormElement;
+    const group = screen.getByRole("group", { name: "Choice" }) as HTMLFieldSetElement;
+    const alpha = screen.getByRole("radio", { name: "Alpha" }) as HTMLInputElement;
+    const beta = screen.getByRole("radio", { name: "Beta" }) as HTMLInputElement;
+    expect(group.form).toBe(form);
+    expect(alpha.form).toBe(form);
+    expect(beta.form).toBe(form);
+    expect(form.checkValidity()).toBe(false);
+    expect(alpha.validity.valueMissing).toBe(true);
+    expect(new FormData(form).has("choice")).toBe(false);
+    fireEvent.click(beta);
+    expect(form.checkValidity()).toBe(true);
+    expect(new FormData(form).get("choice")).toBe("b");
+  });
 });

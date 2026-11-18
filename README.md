@@ -57,7 +57,8 @@ import "@zircon-labs/primitives/styles.css";
 `RadioGroup` uses native radios and a fieldset. Use `value` and
 `onValueChange(value, event)` for controlled selection, or `defaultValue` for
 uncontrolled selection. Its ref targets the fieldset; its `name` identifies the
-native radio group and must differ for independent groups. Options can be
+native radio group and must differ for independent groups. Each option's `value`
+must be unique within the group. Options can be
 disabled individually. `orientation`, `density`, `required`, `disabled`,
 `invalid`, and `fullWidth` customize presentation and state.
 

@@ -1,14 +1,14 @@
 # Zircon Primitives
 
 `@zircon-labs/primitives` provides small, reusable React UI primitives. Version
-`0.1.0-beta.1` is published. This checkout prepares `0.1.0-beta.2`, including
-Drawer; beta.2 has not been published and requires separate authorization.
+`0.1.0-beta.2` is published. This checkout prepares `0.1.0-beta.3`, adding
+Checkbox and RadioGroup; beta.3 has not been published and requires separate authorization.
 
-The current package exports `Button`, `Divider`, `Input`, and `Skeleton`. React
+This checkout exports `Button`, `Checkbox`, `Divider`, `Input`, `RadioGroup`, and `Skeleton`. React
 19 is required as a peer dependency.
 
 Install the existing prerelease with
-`pnpm add @zircon-labs/primitives@0.1.0-beta.1` and import the root components and
+`pnpm add @zircon-labs/primitives@0.1.0-beta.2` and import the root components and
 stylesheet:
 
 ```tsx
@@ -32,6 +32,47 @@ import "@zircon-labs/primitives/styles.css";
 was supplied. Hint and error descriptions are combined with a consumer-provided
 `aria-describedby`, and an error sets `aria-invalid`.
 
+### Choices
+
+The following components are prepared in this checkout and are not included in
+the published beta.2. Import the stylesheet once at the application boundary:
+
+```tsx
+import { Checkbox, RadioGroup } from "@zircon-labs/primitives";
+import "@zircon-labs/primitives/styles.css";
+
+<RadioGroup
+  name="format"
+  label="Format"
+  hint="Choose one format"
+  defaultValue="short"
+  options={[
+    { value: "short", label: "Short", description: "A concise version" },
+    { value: "full", label: "Full" },
+  ]}
+/>
+<Checkbox name="include-notes" label="Include notes" hint="Optional" defaultChecked />
+```
+
+`RadioGroup` uses native radios and a fieldset. Use `value` and
+`onValueChange(value, event)` for controlled selection, or `defaultValue` for
+uncontrolled selection. Its ref targets the fieldset; its `name` identifies the
+native radio group and must differ for independent groups. Each option's `value`
+must be unique within the group. Options can be
+disabled individually. `orientation`, `density`, `required`, `disabled`,
+`invalid`, and `fullWidth` customize presentation and state.
+
+`Checkbox` forwards native input props, including `checked`, `defaultChecked`,
+`onChange`, `required`, and `disabled`; its ref targets the checkbox input.
+Both controls associate hint and error text automatically and combine it with
+consumer-provided `aria-describedby`. `id` and `idPrefix` can supply explicit
+identifiers; otherwise React generates them. Supply an accessible name when a
+visible label is omitted. `density`, `invalid`, and `fullWidth` are also available
+for Checkbox. Both components support inherited CSS overrides such as
+`--zircon-checkbox-accent`, `--zircon-checkbox-focus`,
+`--zircon-radio-group-accent`, and `--zircon-radio-group-focus`, with standalone
+defaults.
+
 Divider labels are descriptive content. Put interactive elements such as links
 and buttons outside the separator.
 
@@ -43,7 +84,7 @@ diameter. When both are provided, `width` takes precedence. With no `width`,
 `fullWidth` takes precedence over `height` and makes the circle as wide as its
 container.
 
-## Drawer (prepared for beta.2)
+## Drawer
 
 Drawer is available only from the dedicated client entry:
 

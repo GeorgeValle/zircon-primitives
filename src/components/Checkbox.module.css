@@ -1,0 +1,16 @@
+/* SPDX-FileCopyrightText: 2026 Jorge Guillermo Valle */
+/* SPDX-License-Identifier: Apache-2.0 */
+
+.root { display: inline-flex; flex-direction: column; gap: var(--zircon-checkbox-message-gap, 0.25rem); color: var(--zircon-checkbox-color, #0f172a); font: inherit; max-width: 100%; }
+.fullWidth { width: 100%; }
+.label { display: inline-flex; align-items: flex-start; gap: var(--zircon-checkbox-gap, 0.5rem); cursor: pointer; font-weight: 600; }
+.control { accent-color: var(--zircon-checkbox-accent, #2563eb); width: var(--zircon-checkbox-size, 1.125rem); height: var(--zircon-checkbox-size, 1.125rem); margin: 0.125rem 0 0; flex: none; }
+.compact .control { width: var(--zircon-checkbox-size-compact, 1rem); height: var(--zircon-checkbox-size-compact, 1rem); }
+.control:focus-visible { outline: 2px solid var(--zircon-checkbox-focus, #2563eb); outline-offset: 2px; }
+.disabled { opacity: var(--zircon-checkbox-disabled-opacity, 0.7); }
+.disabled .label { cursor: not-allowed; }
+.hint, .error { font-size: var(--zircon-checkbox-message-font-size, 0.8125rem); }
+.hint { color: var(--zircon-checkbox-hint-color, #475569); }
+.error { color: var(--zircon-checkbox-error-color, #b91c1c); font-weight: 600; }
+.invalid .control { outline-color: var(--zircon-checkbox-error-color, #b91c1c); }
+@media (forced-colors: active) { .control:focus-visible { outline-color: Highlight; } }

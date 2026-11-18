@@ -19,9 +19,11 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const corepack = process.platform === "win32" ? "corepack.cmd" : "corepack";
 const expectedPackageFiles = [
   "dist/components/Button.d.ts",
+  "dist/components/Checkbox.d.ts",
   "dist/components/Divider.d.ts",
   "dist/components/Drawer.d.ts",
   "dist/components/Input.d.ts",
+  "dist/components/RadioGroup.d.ts",
   "dist/components/Skeleton.d.ts",
   "dist/drawer.d.ts",
   "dist/drawer.js",
@@ -91,7 +93,7 @@ function assertNoNpmrc(directory) {
 
 function assertManifest(manifest) {
   assert.equal(manifest.name, "@zircon-labs/primitives");
-  assert.equal(manifest.version, "0.1.0-beta.2");
+  assert.equal(manifest.version, "0.1.0-beta.3");
   assert.equal("private" in manifest, false);
   assert.equal(manifest.type, "module");
   assert.equal(manifest.license, "Apache-2.0");
@@ -178,7 +180,7 @@ try {
   assert.doesNotMatch(bundle, /["']use client["']|Drawer|composeRefs/);
   assert.doesNotMatch(bundle, /@zircon-labs\/iu|react\.production|minified React error/i);
   const exportedNames = bundle.match(/export \{([^}]+)\}/)?.[1] ?? "";
-  for (const name of ["Button", "Divider", "Input", "Skeleton"]) {
+  for (const name of ["Button", "Checkbox", "Divider", "Input", "RadioGroup", "Skeleton"]) {
     assert.match(exportedNames, new RegExp(`\\b${name}\\b`), `Missing public export: ${name}`);
   }
 
@@ -205,6 +207,8 @@ try {
     "--zircon-button-danger-background",
     "--zircon-input-background",
     "--zircon-input-border",
+    "--zircon-checkbox-accent",
+    "--zircon-radio-group-accent",
     "--zircon-skeleton-background",
     "--zircon-skeleton-highlight",
     "--zircon-skeleton-radius",
@@ -356,10 +360,10 @@ try {
     import { createElement } from "react";
     import { renderToStaticMarkup } from "react-dom/server";
     import * as rootExports from "@zircon-labs/primitives";
-    import { Button, Divider, Input, Skeleton } from "@zircon-labs/primitives";
+    import { Button, Checkbox, Divider, Input, RadioGroup, Skeleton } from "@zircon-labs/primitives";
     import { Drawer } from "@zircon-labs/primitives/drawer";
 
-    if (Object.keys(rootExports).sort().join(",") !== "Button,Divider,Input,Skeleton") process.exit(1);
+    if (Object.keys(rootExports).sort().join(",") !== "Button,Checkbox,Divider,Input,RadioGroup,Skeleton") process.exit(1);
     const drawer = renderToStaticMarkup(createElement(Drawer, {
       open: true, onOpenChange() {}, title: "Details", closeLabel: "Close", children: "Body",
     }));
@@ -370,6 +374,9 @@ try {
     const divider = renderToStaticMarkup(createElement(Divider, { label: "Section" }));
     const input = renderToStaticMarkup(createElement(Input, { hint: "At least one", label: "Quantity", type: "number" }));
     const skeleton = renderToStaticMarkup(createElement(Skeleton, { animated: false }));
+    const checkbox = renderToStaticMarkup(createElement(Checkbox, { label: "Include notes", hint: "Optional" }));
+    const radio = renderToStaticMarkup(createElement(RadioGroup, { name: "choice", label: "Choose", options: [{value: "a", label: "Alpha"}] }));
+    if (!checkbox.includes('type="checkbox"') || !checkbox.includes('aria-describedby=') || !radio.includes('type="radio"') || !radio.includes("Alpha")) process.exit(1);
     if (!button.includes('type="button"') || !button.includes("Remove")) process.exit(1);
     if (!divider.includes("Section") || !input.includes('type="number"')) process.exit(1);
     if (!input.includes('aria-describedby=') || !skeleton.includes('aria-hidden="true"')) process.exit(1);
@@ -386,7 +393,7 @@ try {
   writeFileSync(typeFixture, `
     import { createRef } from "react";
     import { Drawer, type DrawerProps, type DrawerSide, type DrawerSize } from "@zircon-labs/primitives/drawer";
-    import { Button, Divider, Input, Skeleton } from "@zircon-labs/primitives";
+    import { Button, Checkbox, Divider, Input, RadioGroup, Skeleton, type CheckboxDensity, type CheckboxProps, type RadioGroupDensity, type RadioGroupOption, type RadioGroupOrientation, type RadioGroupProps } from "@zircon-labs/primitives";
     // @ts-expect-error Drawer is not a root export.
     import { Drawer as RootDrawer } from "@zircon-labs/primitives";
     const side: DrawerSide = "left";
@@ -395,7 +402,12 @@ try {
       open: false, onOpenChange() {}, title: "Details", closeLabel: "Close", children: "Body",
       ref: createRef<HTMLDialogElement>(), side, size,
     };
-    <><Drawer {...props} /><Button /><Divider /><Input /><Skeleton /></>;
+    const density: CheckboxDensity & RadioGroupDensity = "compact";
+    const orientation: RadioGroupOrientation = "horizontal";
+    const options: RadioGroupOption[] = [{ value: "a", label: "Alpha" }];
+    const checkProps: CheckboxProps = { label: "Notes", density, ref: createRef<HTMLInputElement>() };
+    const radioProps: RadioGroupProps = { name: "choice", options, density, orientation, ref: createRef<HTMLFieldSetElement>() };
+    <><Drawer {...props} /><Button /><Checkbox {...checkProps} /><Divider /><Input /><RadioGroup {...radioProps} /><Skeleton /></>;
   `, "utf8");
   run(process.execPath, [
     join(root, "scripts", "tsc-native.mjs"), "--noEmit", "--strict", "--jsx", "react-jsx",
